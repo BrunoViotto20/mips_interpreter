@@ -54,6 +54,22 @@ void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu);
 
 void add(CPU *cpu, char **arguments, int length);
 void addi(CPU *cpu, char **arguments, int length);
+void addu(CPU *cpu, char **arguments, int length);
+void sub(CPU *cpu, char **arguments, int length);
+void subi(CPU *cpu, char **arguments, int length);
+void subu(CPU *cpu, char **arguments, int length);
+void j(CPU *cpu, char **arguments, int length);
+void mult(CPU *cpu, char **arguments, int length);
+void _and(CPU *cpu, char **arguments, int length);
+void _or(CPU *cpu, char **arguments, int length);
+void andi(CPU *cpu, char **arguments, int length);
+void ori(CPU *cpu, char **arguments, int length);
+void beq(CPU *cpu, char **arguments, int length);
+void bne(CPU *cpu, char **arguments, int length);
+void blt(CPU *cpu, char **arguments, int length);
+void ble(CPU *cpu, char **arguments, int length);
+void bgt(CPU *cpu, char **arguments, int length);
+void bge(CPU *cpu, char **arguments, int length);
 
 int *get_register(Registers *registers, char *register_name);
 
@@ -69,6 +85,8 @@ int main()
 
     while (true)
     {
+        cpu.registers.zero = 0;
+
         // Gets the instruction from the user
         char instruction_buffer[LINE_LENGTH] = {0};
         printf("%4d > ", cpu.program_counter);
@@ -90,6 +108,8 @@ int main()
         }
 
         execute_instruction(instruction, &cpu);
+
+        cpu.program_counter += 4;
     }
 
     return 0;
@@ -179,20 +199,83 @@ void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu)
         args_length++;
     }
 
-    cpu->registers.zero = 0;
-
     // Executes the instruction
     if (strcmp(tag, "ADD") == 0)
     {
         add(cpu, args, args_length);
     }
+    else if (strcmp(tag, "ADDU") == 0)
+    {
+        addu(cpu, args, args_length);
+    }
     else if (strcmp(tag, "ADDI") == 0)
     {
         addi(cpu, args, args_length);
     }
+    else if (strcmp(tag, "SUB") == 0)
+    {
+        sub(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "SUBU") == 0)
+    {
+        subu(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "SUBI") == 0)
+    {
+        subi(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "J") == 0)
+    {
+        j(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "MULT") == 0)
+    {
+        mult(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "AND") == 0)
+    {
+        _and(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "OR") == 0)
+    {
+        _or(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "ANDI") == 0)
+    {
+        andi(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "ORI") == 0)
+    {
+        ori(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BEQ") == 0)
+    {
+        beq(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BNE") == 0)
+    {
+        bne(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BLT") == 0)
+    {
+        blt(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BLE") == 0)
+    {
+        ble(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BGT") == 0)
+    {
+        bgt(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "BGE") == 0)
+    {
+        bge(cpu, args, args_length);
+    }
     else
     {
         printf("ERRO: \"%s\" não é uma tag válida\n", tag);
+        cpu->program_counter -= 4;
     }
 }
 
@@ -200,7 +283,7 @@ void add(CPU *cpu, char **arguments, int length)
 {
     if (length != 3)
     {
-        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d", length);
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
         return;
     }
 
@@ -221,16 +304,12 @@ void addi(CPU *cpu, char **arguments, int length)
 {
     if (length != 3)
     {
-        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d", length);
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
         return;
     }
 
     int *ret = get_register(&cpu->registers, arguments[0]);
     int *arg1 = get_register(&cpu->registers, arguments[1]);
-
-    errno = 0;
-    char *endarg2;
-    int arg2 = strtol(arguments[2], &endarg2, 10);
 
     if (ret == NULL || arg1 == NULL)
     {
@@ -238,12 +317,445 @@ void addi(CPU *cpu, char **arguments, int length)
         return;
     }
 
+    errno = 0;
+    char *endarg2;
+    int arg2 = strtol(arguments[2], &endarg2, 10);
+
     if (errno != 0 || arguments[2] == endarg2 || *endarg2 != '\0')
     {
-        printf("ERRO: Instrução inválida, número imediato inválido");
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
     }
 
     *ret = *arg1 + arg2;
+}
+
+void addu(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    unsigned int *ret = (unsigned int *)get_register(&cpu->registers, arguments[0]);
+    unsigned int *arg1 = (unsigned int *)get_register(&cpu->registers, arguments[1]);
+    unsigned int *arg2 = (unsigned int *)get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 + *arg2;
+}
+
+void sub(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+    int *arg2 = get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 - *arg2;
+}
+
+void subu(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    unsigned int *ret = (unsigned int *)get_register(&cpu->registers, arguments[0]);
+    unsigned int *arg1 = (unsigned int *)get_register(&cpu->registers, arguments[1]);
+    unsigned int *arg2 = (unsigned int *)get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 - *arg2;
+}
+
+void subi(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+
+    if (ret == NULL || arg1 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endarg2;
+    int arg2 = strtol(arguments[2], &endarg2, 10);
+
+    if (errno != 0 || arguments[2] == endarg2 || *endarg2 != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    *ret = *arg1 - arg2;
+}
+
+void j(CPU *cpu, char **arguments, int length)
+{
+    if (length != 1)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 1 e foram recebidos %d\n", length);
+        return;
+    }
+
+    errno = 0;
+    char *end;
+    int arg = strtol(arguments[0], &end, 10);
+
+    if (errno != 0 || arguments[0] == end || *end != '\0')
+    {
+        printf("ERRO: Instrução inválida, endereço inválido\n");
+    }
+
+    cpu->program_counter = arg - 4;
+}
+
+void mult(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+    int *arg2 = get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 * *arg2;
+}
+
+void _and(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+    int *arg2 = get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 & *arg2;
+}
+
+void _or(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+    int *arg2 = get_register(&cpu->registers, arguments[2]);
+
+    if (ret == NULL || arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    *ret = *arg1 | *arg2;
+}
+
+void andi(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+
+    if (ret == NULL || arg1 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endarg2;
+    int arg2 = strtol(arguments[2], &endarg2, 10);
+
+    if (errno != 0 || arguments[2] == endarg2 || *endarg2 != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    *ret = *arg1 & arg2;
+}
+
+void ori(CPU *cpu, char **arguments, int length)
+{
+
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+
+    if (ret == NULL || arg1 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endarg2;
+    int arg2 = strtol(arguments[2], &endarg2, 10);
+
+    if (errno != 0 || arguments[2] == endarg2 || *endarg2 != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    *ret = *arg1 | arg2;
+}
+
+void beq(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 == *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
+}
+
+void bne(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 != *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
+}
+
+void blt(CPU *cpu, char **arguments, int length)
+{
+
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 < *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
+}
+
+void ble(CPU *cpu, char **arguments, int length)
+{
+
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 <= *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
+}
+
+void bgt(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 > *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
+}
+
+void bge(CPU *cpu, char **arguments, int length)
+{
+
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *arg1 = get_register(&cpu->registers, arguments[0]);
+    int *arg2 = get_register(&cpu->registers, arguments[1]);
+
+    if (arg1 == NULL || arg2 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    errno = 0;
+    char *endlabel;
+    int label = strtol(arguments[2], &endlabel, 10);
+
+    if (errno != 0 || arguments[2] == endlabel || *endlabel != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido\n");
+    }
+
+    if (*arg1 >= *arg2)
+    {
+        cpu->program_counter = label - 4;
+    }
 }
 
 int *get_register(Registers *registers, char *register_name)
