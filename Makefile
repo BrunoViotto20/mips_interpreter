@@ -8,7 +8,7 @@ LIB=
 OBJ=$(addprefix $(OBJ_DIR), $(LIB:.c=.o))
 EXE=$(BIN_DIR)/$(shell basename $(SRC:.c=))
 
-.PHONY: clean run
+.PHONY: clean run $(EXE)
 
 all: clean $(EXE)
 
