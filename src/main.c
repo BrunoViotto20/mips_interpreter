@@ -1,5 +1,7 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define LINE_LENGTH 64
@@ -51,6 +53,7 @@ void print_registers(Registers *registers);
 void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu);
 
 void add(CPU *cpu, char **arguments, int length);
+void addi(CPU *cpu, char **arguments, int length);
 
 int *get_register(Registers *registers, char *register_name);
 
@@ -183,6 +186,10 @@ void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu)
     {
         add(cpu, args, args_length);
     }
+    else if (strcmp(tag, "ADDI") == 0)
+    {
+        addi(cpu, args, args_length);
+    }
     else
     {
         printf("ERRO: \"%s\" não é uma tag válida\n", tag);
@@ -208,6 +215,35 @@ void add(CPU *cpu, char **arguments, int length)
     }
 
     *ret = *arg1 + *arg2;
+}
+
+void addi(CPU *cpu, char **arguments, int length)
+{
+    if (length != 3)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 3 e foram recebidos %d", length);
+        return;
+    }
+
+    int *ret = get_register(&cpu->registers, arguments[0]);
+    int *arg1 = get_register(&cpu->registers, arguments[1]);
+
+    errno = 0;
+    char *endarg2;
+    int arg2 = strtol(arguments[2], &endarg2, 10);
+
+    if (ret == NULL || arg1 == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    if (errno != 0 || arguments[2] == endarg2 || *endarg2 != '\0')
+    {
+        printf("ERRO: Instrução inválida, número imediato inválido");
+    }
+
+    *ret = *arg1 + arg2;
 }
 
 int *get_register(Registers *registers, char *register_name)
