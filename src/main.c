@@ -95,7 +95,7 @@ int main()
         char *instruction = trim(instruction_buffer);
 
         // If instruction is EXIT, end program
-        if (strcmp(instruction, "SHOW") == 0)
+        if (strcmp(instruction, "DEBUG") == 0)
         {
             print_registers(&cpu.registers);
             continue;
