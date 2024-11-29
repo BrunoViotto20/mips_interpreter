@@ -7,7 +7,10 @@
 #define LINE_LENGTH 64
 #define INSTRUCTION_ARGS 3
 
-typedef struct
+typedef struct CPU CPU;
+typedef struct Registers Registers;
+
+struct Registers
 {
     /// @brief Temporary registers.
     int t[10];
@@ -41,13 +44,13 @@ typedef struct
 
     /// @brief Reserved for assembler.
     int at;
-} Registers;
+};
 
-typedef struct
+struct CPU
 {
-    int program_counter;
+    unsigned int program_counter;
     Registers registers;
-} CPU;
+};
 
 void print_help();
 void print_registers(Registers *registers);
@@ -92,7 +95,7 @@ int main()
 
         // Gets the instruction from the user
         char instruction_buffer[LINE_LENGTH] = {0};
-        printf("%4d > ", cpu.program_counter);
+        printf("%11d > ", cpu.program_counter);
         (void)fgets(instruction_buffer, sizeof(instruction_buffer), stdin);
 
         char *instruction = trim(instruction_buffer);
@@ -128,7 +131,11 @@ int main()
 void print_help()
 {
     printf("\n");
+    printf("HELP\n");
+    printf("\n");
+
     printf("Instruções R\n");
+    printf("\n");
     printf("ADD registrador0, registrador1, registrador2\n");
     printf("SUB registrador0, registrador1, registrador2\n");
     printf("ADDU registrador0, registrador1, registrador2\n");
@@ -139,6 +146,7 @@ void print_help()
     printf("\n");
 
     printf("Instruções I\n");
+    printf("\n");
     printf("ADDI registrador0, registrador1, imediato\n");
     printf("ANDI registrador0, registrador1, imediato\n");
     printf("ORI registrador0, registrador1, imediato\n");
@@ -149,6 +157,7 @@ void print_help()
     printf("\n");
 
     printf("Instruções J\n");
+    printf("\n");
     printf("J endereço\n");
     printf("\n");
 }
