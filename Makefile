@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g
+CFLAGS=-Wall -Wextra
 BIN_DIR=bin
 SRC_DIR=src
 INCLUDE_DIR=includes
@@ -8,12 +8,15 @@ LIB=
 OBJ=$(addprefix $(OBJ_DIR), $(LIB:.c=.o))
 EXE=$(BIN_DIR)/$(shell basename $(SRC:.c=))
 
-.PHONY: clean run $(EXE)
+ifeq ($(DEBUG),1)
+    CFLAGS += -g -DDEBUG
+else
+    CFLAGS += -O2
+endif
+
+.PHONY: clean run
 
 all: clean $(EXE)
-
-run: $(EXE)
-	$<
 
 $(EXE): $(OBJ)
 	$(CC) $(CFLAGS) -I $(INCLUDE_DIR) $(SRC) $(shell find $(BIN_DIR)/*.o) -o $@

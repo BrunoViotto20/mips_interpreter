@@ -71,6 +71,8 @@ void beq(CPU *cpu, char **arguments, int length);
 void bne(CPU *cpu, char **arguments, int length);
 void blez(CPU *cpu, char **arguments, int length);
 void bgtz(CPU *cpu, char **arguments, int length);
+void jal(CPU *cpu, char **arguments, int length);
+void jr(CPU *cpu, char **arguments, int length);
 
 void print_instruction_r(char *reg0, char *reg1, char *reg2, unsigned char funct);
 void print_instruction_i(unsigned char opcode, char *reg0, char *reg1, short immediate);
@@ -95,7 +97,7 @@ int main()
 
         // Gets the instruction from the user
         char instruction_buffer[LINE_LENGTH] = {0};
-        printf("%11d > ", cpu.program_counter);
+        printf("%11u > ", cpu.program_counter);
         (void)fgets(instruction_buffer, sizeof(instruction_buffer), stdin);
 
         char *instruction = trim(instruction_buffer);
@@ -143,6 +145,7 @@ void print_help()
     printf("MULT registrador0, registrador1, registrador2\n");
     printf("AND registrador0, registrador1, registrador2\n");
     printf("OR registrador0, registrador1, registrador2\n");
+    printf("JR registrador0\n");
     printf("\n");
 
     printf("Instruções I\n");
@@ -159,6 +162,7 @@ void print_help()
     printf("Instruções J\n");
     printf("\n");
     printf("J endereço\n");
+    printf("JAL endereço\n");
     printf("\n");
 }
 
@@ -306,6 +310,14 @@ void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu)
     else if (strcmp(tag, "BGTZ") == 0)
     {
         bgtz(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "JAL") == 0)
+    {
+        jal(cpu, args, args_length);
+    }
+    else if (strcmp(tag, "JR") == 0)
+    {
+        jr(cpu, args, args_length);
     }
     else
     {
@@ -727,6 +739,50 @@ void bgtz(CPU *cpu, char **arguments, int length)
     }
 
     print_instruction_j(0x7, label);
+}
+
+void jal(CPU *cpu, char **arguments, int length)
+{
+    if (length != 1)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 1 e foram recebidos %d\n", length);
+        return;
+    }
+
+    errno = 0;
+    char *end;
+    int label = strtol(arguments[0], &end, 10);
+
+    if (errno != 0 || arguments[0] == end || *end != '\0')
+    {
+        printf("ERRO: Instrução inválida, endereço inválido\n");
+    }
+
+    cpu->registers.ra = cpu->program_counter;
+    cpu->program_counter = label - 4;
+
+    print_instruction_j(0x3, label);
+}
+
+void jr(CPU *cpu, char **arguments, int length)
+{
+    if (length != 1)
+    {
+        printf("ERRO: Quantidade inesperada de argumetos, eram esperados 1 e foram recebidos %d\n", length);
+        return;
+    }
+
+    int *reg = get_register(&cpu->registers, arguments[0]);
+
+    if (reg == NULL)
+    {
+        printf("ERRO: Instrução inválida, registrador não encontrado\n");
+        return;
+    }
+
+    cpu->program_counter = *reg - 4;
+
+    print_instruction_r(arguments[0], "$zero", "$zero", 0x8);
 }
 
 int *get_register(Registers *registers, char *register_name)
