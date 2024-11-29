@@ -66,7 +66,6 @@ void ori(CPU *cpu, char **arguments, int length);
 void beq(CPU *cpu, char **arguments, int length);
 void bne(CPU *cpu, char **arguments, int length);
 void bltz(CPU *cpu, char **arguments, int length);
-void bgt(CPU *cpu, char **arguments, int length);
 void bgtz(CPU *cpu, char **arguments, int length);
 
 void print_instruction_r(char *reg0, char *reg1, char *reg2, unsigned char funct);
