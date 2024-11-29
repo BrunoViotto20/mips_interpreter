@@ -98,7 +98,8 @@ int main()
         // Gets the instruction from the user
         char instruction_buffer[LINE_LENGTH] = {0};
         printf("%11u > ", cpu.program_counter);
-        (void)fgets(instruction_buffer, sizeof(instruction_buffer), stdin);
+        char *_ = fgets(instruction_buffer, sizeof(instruction_buffer), stdin);
+        (void)_;
 
         char *instruction = trim(instruction_buffer);
 
@@ -134,6 +135,9 @@ void print_help()
 {
     printf("\n");
     printf("HELP\n");
+    printf("\n");
+
+    printf("Instruções implementadas\n");
     printf("\n");
 
     printf("Instruções R\n");
