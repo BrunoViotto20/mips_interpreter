@@ -66,7 +66,7 @@ void andi(CPU *cpu, char **arguments, int length);
 void ori(CPU *cpu, char **arguments, int length);
 void beq(CPU *cpu, char **arguments, int length);
 void bne(CPU *cpu, char **arguments, int length);
-void bltz(CPU *cpu, char **arguments, int length);
+void blez(CPU *cpu, char **arguments, int length);
 void bgtz(CPU *cpu, char **arguments, int length);
 
 void print_instruction_r(char *reg0, char *reg1, char *reg2, unsigned char funct);
@@ -144,7 +144,7 @@ void print_help()
     printf("ORI registrador0, registrador1, imediato\n");
     printf("BEQ registrador0, registrador1, endereço\n");
     printf("BNE registrador0, registrador1, endereço\n");
-    printf("BLTZ registrador0, registrador1, endereço\n");
+    printf("BLEZ registrador0, registrador1, endereço\n");
     printf("BGTZ registrador0, registrador1, endereço\n");
     printf("\n");
 
@@ -290,9 +290,9 @@ void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu)
     {
         bne(cpu, args, args_length);
     }
-    else if (strcmp(tag, "BLTZ") == 0)
+    else if (strcmp(tag, "BLEZ") == 0)
     {
-        bltz(cpu, args, args_length);
+        blez(cpu, args, args_length);
     }
     else if (strcmp(tag, "BGTZ") == 0)
     {
@@ -650,7 +650,7 @@ void bne(CPU *cpu, char **arguments, int length)
     print_instruction_j(0x5, label);
 }
 
-void bltz(CPU *cpu, char **arguments, int length)
+void blez(CPU *cpu, char **arguments, int length)
 {
 
     if (length != 3)
@@ -712,7 +712,7 @@ void bgtz(CPU *cpu, char **arguments, int length)
         printf("ERRO: Instrução inválida, número imediato inválido\n");
     }
 
-    if (*arg1 >= *arg2)
+    if (*arg1 > *arg2)
     {
         cpu->program_counter = label - 4;
     }
