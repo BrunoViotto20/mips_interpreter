@@ -49,6 +49,7 @@ typedef struct
     Registers registers;
 } CPU;
 
+void print_help();
 void print_registers(Registers *registers);
 void execute_instruction(char instruction[LINE_LENGTH], CPU *cpu);
 
@@ -99,7 +100,7 @@ int main()
         // If instruction is HELP, show supported tags
         if (strcmp(instruction, "HELP") == 0)
         {
-            // print_registers(&cpu.registers);
+            print_help();
             continue;
         }
 
@@ -122,6 +123,34 @@ int main()
     }
 
     return 0;
+}
+
+void print_help()
+{
+    printf("\n");
+    printf("Instruções R\n");
+    printf("ADD registrador0, registrador1, registrador2\n");
+    printf("SUB registrador0, registrador1, registrador2\n");
+    printf("ADDU registrador0, registrador1, registrador2\n");
+    printf("SUBU registrador0, registrador1, registrador2\n");
+    printf("MULT registrador0, registrador1, registrador2\n");
+    printf("AND registrador0, registrador1, registrador2\n");
+    printf("OR registrador0, registrador1, registrador2\n");
+    printf("\n");
+
+    printf("Instruções I\n");
+    printf("ADDI registrador0, registrador1, imediato\n");
+    printf("ANDI registrador0, registrador1, imediato\n");
+    printf("ORI registrador0, registrador1, imediato\n");
+    printf("BEQ registrador0, registrador1, endereço\n");
+    printf("BNE registrador0, registrador1, endereço\n");
+    printf("BLTZ registrador0, registrador1, endereço\n");
+    printf("BGTZ registrador0, registrador1, endereço\n");
+    printf("\n");
+
+    printf("Instruções J\n");
+    printf("J endereço\n");
+    printf("\n");
 }
 
 void print_registers(Registers *registers)
