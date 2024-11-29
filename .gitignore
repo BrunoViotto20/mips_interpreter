@@ -1,8 +1,4 @@
 
-# Binary files
-
-bin/
-
 ## IDE
 
 .vs/
@@ -13,3 +9,7 @@ bin/
 
 !.vscode/launch.json
 !.vscode/tasks.json
+
+# Binary files
+
+bin/
